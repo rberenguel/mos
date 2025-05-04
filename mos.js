@@ -21,7 +21,7 @@ const exportOkButton = document.getElementById("exportOkButton");
 const exportCancelButton = document.getElementById("exportCancelButton");
 const exportErrorDiv = document.getElementById("exportError");
 const animExportModalBackdrop = document.getElementById(
-  "animExportModalBackdrop"
+  "animExportModalBackdrop",
 );
 const animExportModal = document.getElementById("animExportModal");
 const animExportFormat = document.getElementById("animExportFormat");
@@ -31,7 +31,7 @@ const animExportLoop = document.getElementById("animExportLoop");
 const animExportGrid = document.getElementById("animExportGrid");
 const animExportStartButton = document.getElementById("animExportStartButton");
 const animExportCancelButton = document.getElementById(
-  "animExportCancelButton"
+  "animExportCancelButton",
 );
 const animExportStatus = document.getElementById("animExportStatus");
 const animExportError = document.getElementById("animExportError");
@@ -184,7 +184,7 @@ function createLayerObject(
   name,
   type = "pixel",
   isVisible = true,
-  data = null
+  data = null,
 ) {
   const layer = {
     id: nextLayerId++,
@@ -203,6 +203,138 @@ function createLayerObject(
     layer.scale = data ? data.scale : 1.0; // Scale factor
   }
   return layer;
+}
+
+function addEmptyFrame(makeActive = true) {
+  // Create a new frame object with a unique ID
+  const newFrame = {
+    id: nextFrameId++,
+    layers: [],
+    onionSkinEnabled: false, // Default onion skin state
+  };
+
+  // Get the layer structure from the first frame as a template
+  const layerStructureSource = animationData[0]?.layers || [
+    { name: "Layer 1", type: "pixel", isVisible: true },
+  ];
+
+  // Create layers for the new frame based on the template
+  layerStructureSource.forEach((sourceLayer) => {
+    const newLayer = {
+      id: sourceLayer.id, // Keep the same layer ID across frames
+      name: sourceLayer.name,
+      type: sourceLayer.type,
+      isVisible: sourceLayer.isVisible,
+    };
+
+    // Initialize data based on layer type
+    if (sourceLayer.type === "pixel") {
+      newLayer.pixels = createPixelData(gridWidth, gridHeight); // Create empty pixel data
+    } else if (sourceLayer.type === "reference") {
+      // Copy reference layer properties
+      newLayer.imageDataUrl = sourceLayer.imageDataUrl;
+      newLayer.originalWidth = sourceLayer.originalWidth;
+      newLayer.originalHeight = sourceLayer.originalHeight;
+      newLayer.offsetX = sourceLayer.offsetX;
+      newLayer.offsetY = sourceLayer.offsetY;
+      newLayer.scale = sourceLayer.scale;
+      // Copy the image object reference if it exists (for immediate rendering)
+      if (sourceLayer._image) {
+        newLayer._image = sourceLayer._image;
+      }
+    }
+    newFrame.layers.push(newLayer);
+  });
+
+  // Insert the new frame after the active frame
+  const insertIndex = activeFrameIndex + 1;
+  animationData.splice(insertIndex, 0, newFrame);
+
+  // Set the new frame as active if requested
+  if (makeActive) {
+    activeFrameIndex = insertIndex;
+    // Ensure active layer index is valid for the new frame
+    if (activeLayerIndex >= animationData[activeFrameIndex].layers.length) {
+      activeLayerIndex = Math.max(
+        0,
+        animationData[activeFrameIndex].layers.length - 1,
+      );
+    }
+    // If the active layer is now a reference layer, switch to the first pixel layer
+    if (
+      animationData[activeFrameIndex].layers[activeLayerIndex]?.type ===
+      "reference"
+    ) {
+      activeLayerIndex = animationData[activeFrameIndex].layers.findIndex(
+        (layer) => layer.type === "pixel",
+      );
+      if (activeLayerIndex === -1) activeLayerIndex = 0; // Fallback
+    }
+  }
+
+  console.log("Added empty frame at index", insertIndex);
+  renderTimelinePanel();
+  renderLayersPanel(); // Re-render layers panel as frame layers changed
+  render(); // Re-render canvas
+  updateStatus(); // Update status for new active frame/layer
+}
+
+// --- Duplicate Current Frame ---
+function duplicateCurrentFrame(makeActive = true) {
+  if (activeFrameIndex < 0 || activeFrameIndex >= animationData.length) return;
+
+  const sourceFrame = animationData[activeFrameIndex];
+  const newFrame = {
+    id: nextFrameId++, // Assign a new unique ID
+    layers: [],
+    onionSkinEnabled: sourceFrame.onionSkinEnabled, // Copy onion skin state
+  };
+
+  // Duplicate layers from the source frame
+  sourceFrame.layers.forEach((sourceLayer) => {
+    const newLayer = {
+      id: sourceLayer.id, // Keep the same layer ID across frames
+      name: sourceLayer.name,
+      type: sourceLayer.type,
+      isVisible: sourceLayer.isVisible,
+    };
+
+    // Copy data based on layer type
+    if (sourceLayer.type === "pixel") {
+      // Deep copy pixel data
+      newLayer.pixels = sourceLayer.pixels.map((row) => [...row]);
+    } else if (sourceLayer.type === "reference") {
+      // Copy reference layer properties
+      newLayer.imageDataUrl = sourceLayer.imageDataUrl;
+      newLayer.originalWidth = sourceLayer.originalWidth;
+      newLayer.originalHeight = sourceLayer.originalHeight;
+      newLayer.offsetX = sourceLayer.offsetX;
+      newLayer.offsetY = sourceLayer.offsetY;
+      newLayer.scale = sourceLayer.scale;
+      // Copy the image object reference if it exists (for immediate rendering)
+      if (sourceLayer._image) {
+        newLayer._image = sourceLayer._image;
+      }
+    }
+    newFrame.layers.push(newLayer);
+  });
+
+  // Insert the duplicated frame after the active frame
+  const insertIndex = activeFrameIndex + 1;
+  animationData.splice(insertIndex, 0, newFrame);
+
+  // Set the new frame as active if requested
+  if (makeActive) {
+    activeFrameIndex = insertIndex;
+    // Ensure active layer index is valid for the new frame (should be the same as the source frame)
+    // No change needed to activeLayerIndex as layer IDs are preserved and structure is duplicated.
+  }
+
+  console.log("Duplicated frame", sourceFrame.id, "to index", insertIndex);
+  renderTimelinePanel();
+  renderLayersPanel(); // Re-render layers panel as frame layers changed
+  render(); // Re-render canvas
+  updateStatus(); // Update status for new active frame
 }
 
 // Add a new pixel layer to all frames
@@ -243,11 +375,11 @@ function addEmptyPixelLayerToAllFrames() {
 
   // Update active layer index based on the new layer's position in the active frame
   activeLayerIndex = animationData[activeFrameIndex].layers.findIndex(
-    (layer) => layer.id === newLayerGlobalId
+    (layer) => layer.id === newLayerGlobalId,
   );
 
   console.log(
-    `Added pixel layer ${newLayerName} (ID: ${newLayerGlobalId}) to all frames at display index ${insertIndex}.`
+    `Added pixel layer ${newLayerName} (ID: ${newLayerGlobalId}) to all frames at display index ${insertIndex}.`,
   );
   renderLayersPanel();
   render();
@@ -257,7 +389,7 @@ function addEmptyPixelLayerToAllFrames() {
 function addReferenceLayerToAllFrames(
   imageDataUrl,
   originalWidth,
-  originalHeight
+  originalHeight,
 ) {
   // Check if a reference layer already exists
   if (animationData[0].layers.some((layer) => layer.type === "reference")) {
@@ -334,10 +466,10 @@ function generatePalette() {
       setTimeout(() => {
         nativeColorPicker.style.left = `${lastMousePos.x}px`;
         nativeColorPicker.style.top = `${lastMousePos.y}px`;
-      }, 2)
+      }, 2);
       longPressTimer = setTimeout(() => {
         longPressTimer = null;
-        
+
         nativeColorPicker.value = paletteColors[index];
         nativeColorPicker.click();
       }, longPressDuration);
@@ -433,7 +565,7 @@ function render() {
   if (activeFrameIndex < 0 || activeFrameIndex >= animationData.length) {
     console.error(
       "Render cancelled: Invalid active frame index",
-      activeFrameIndex
+      activeFrameIndex,
     );
     return;
   }
@@ -494,14 +626,14 @@ function render() {
       selectionOffset.y,
       selectionContentData.width,
       selectionContentData.height,
-      0.8
+      0.8,
     );
     drawSelectionOutline(
       selectionOffset.x * pixelSize,
       selectionOffset.y * pixelSize,
       selectionContentData.width * pixelSize,
       selectionContentData.height * pixelSize,
-      true
+      true,
     );
   }
 
@@ -513,7 +645,7 @@ function render() {
       rect.y * pixelSize,
       rect.width * pixelSize,
       rect.height * pixelSize,
-      true
+      true,
     );
   } else if (currentState === "idle" && selectionRect) {
     drawSelectionOutline(
@@ -521,7 +653,7 @@ function render() {
       selectionRect.y * pixelSize,
       selectionRect.width * pixelSize,
       selectionRect.height * pixelSize,
-      true
+      true,
     );
   }
 
@@ -531,14 +663,14 @@ function render() {
       startPos.gridX,
       startPos.gridY,
       currentPos.gridX,
-      currentPos.gridY
+      currentPos.gridY,
     );
   } else if (currentState === "drawingRectangle" && startPos && currentPos) {
     drawRectanglePreview(
       startPos.gridX,
       startPos.gridY,
       currentPos.gridX,
-      currentPos.gridY
+      currentPos.gridY,
     );
   }
 
@@ -567,7 +699,7 @@ function drawPixelData(data, offsetX, offsetY, width, height, alpha = 1) {
               drawX * pixelSize,
               drawY * pixelSize,
               pixelSize,
-              pixelSize
+              pixelSize,
             );
           }
         }
@@ -608,7 +740,7 @@ function drawReferenceImage(layer) {
       layer.offsetX,
       layer.offsetY,
       scaledWidth,
-      scaledHeight
+      scaledHeight,
     );
 
     ctx.globalAlpha = 1; // Reset alpha
@@ -801,7 +933,7 @@ function renderLayersPanel() {
     visibilityToggle.classList.add(
       "visibility-toggle",
       "fas",
-      layer.isVisible ? "fa-eye" : "fa-eye-slash"
+      layer.isVisible ? "fa-eye" : "fa-eye-slash",
     );
     visibilityToggle.classList.toggle("visible", layer.isVisible);
     visibilityToggle.classList.toggle("hidden", !layer.isVisible);
@@ -864,7 +996,7 @@ function getActiveLayer() {
     "Invalid active layer index:",
     activeLayerIndex,
     "for frame",
-    activeFrameIndex
+    activeFrameIndex,
   );
   return null;
 }
@@ -1161,7 +1293,7 @@ function setActiveFrame(index) {
           "pixel"
       ) {
         newActiveLayerIndex = animationData[activeFrameIndex].layers.findIndex(
-          (layer) => layer.type === "pixel"
+          (layer) => layer.type === "pixel",
         );
         // If no pixel layers exist (shouldn't happen with current logic), default to 0
         if (newActiveLayerIndex === -1) newActiveLayerIndex = 0;
@@ -1184,7 +1316,7 @@ function setActiveLayer(index) {
     if (activeLayerIndex !== index) {
       cancelPlacement(); // Cancel any ongoing pixel placement
       console.log(
-        `Setting active layer to index ${index} (ID: ${currentFrameLayers[index].id}, Type: ${currentFrameLayers[index].type})`
+        `Setting active layer to index ${index} (ID: ${currentFrameLayers[index].id}, Type: ${currentFrameLayers[index].type})`,
       );
       activeLayerIndex = index;
       renderLayersPanel();
@@ -1205,7 +1337,7 @@ function toggleLayerVisibility(layerId) {
       layer.isVisible = !layer.isVisible;
       changed = true;
       console.log(
-        `Layer ${layerId} visibility set to ${layer.isVisible} in frame ${frame.id}`
+        `Layer ${layerId} visibility set to ${layer.isVisible} in frame ${frame.id}`,
       );
     }
   });
@@ -1285,7 +1417,7 @@ function handleLayerDrop(e) {
   animationData.forEach((frame) => {
     const currentLayers = frame.layers;
     const draggedIndex = currentLayers.findIndex(
-      (layer) => layer.id === draggedLayerId
+      (layer) => layer.id === draggedLayerId,
     );
     if (draggedIndex === -1) return; // Layer not found in this frame (shouldn't happen with current logic)
 
@@ -1294,11 +1426,11 @@ function handleLayerDrop(e) {
     let targetIndex;
     if (droppedOnLayerId !== null) {
       targetIndex = currentLayers.findIndex(
-        (layer) => layer.id === droppedOnLayerId
+        (layer) => layer.id === droppedOnLayerId,
       );
       if (targetIndex === -1) {
         console.warn(
-          `Dropped on layer ID ${droppedOnLayerId} not found in frame ${frame.id}. Appending layer.`
+          `Dropped on layer ID ${droppedOnLayerId} not found in frame ${frame.id}. Appending layer.`,
         );
         currentLayers.push(draggedLayer);
         return;
@@ -1331,21 +1463,21 @@ function handleLayerDrop(e) {
 
   // Update active layer index based on the final position of the previously active layer
   activeLayerIndex = animationData[activeFrameIndex].layers.findIndex(
-    (l) => l.id === finalActiveLayerId
+    (l) => l.id === finalActiveLayerId,
   );
   if (activeLayerIndex === -1) {
     // If the previously active layer was the one being dragged, set the new active layer
     // to the one that is now at the target index (if it's a pixel layer),
     // or the first pixel layer if the target was empty or non-pixel.
     const targetLayer = animationData[activeFrameIndex].layers.find(
-      (l) => l.id === draggedLayerId
+      (l) => l.id === draggedLayerId,
     );
     if (targetLayer && targetLayer.type === "pixel") {
       activeLayerIndex =
         animationData[activeFrameIndex].layers.indexOf(targetLayer);
     } else {
       activeLayerIndex = animationData[activeFrameIndex].layers.findIndex(
-        (layer) => layer.type === "pixel"
+        (layer) => layer.type === "pixel",
       );
       if (activeLayerIndex === -1) activeLayerIndex = 0; // Fallback
     }
@@ -1451,7 +1583,7 @@ function handleFrameDrop(e) {
 
   // Set the active frame to the one that was just moved
   activeFrameIndex = animationData.findIndex(
-    (frame) => frame.id === draggedFrame.id
+    (frame) => frame.id === draggedFrame.id,
   );
   if (activeFrameIndex === -1) activeFrameIndex = 0; // Fallback if something went wrong
 
@@ -1471,7 +1603,7 @@ function handleFrameDragEnd(e) {
 function addTimelineListeners() {
   addFrameButton.addEventListener("click", () => addEmptyFrame(true));
   duplicateFrameButton.addEventListener("click", () =>
-    duplicateCurrentFrame(true)
+    duplicateCurrentFrame(true),
   );
   frameList.addEventListener("dragover", (e) => {
     e.preventDefault();
@@ -1525,7 +1657,7 @@ function handleDeleteFrame(index) {
 function handleDeleteLayer(layerId, layerName) {
   // Prevent deleting if it's the last pixel layer
   const pixelLayers = animationData[activeFrameIndex].layers.filter(
-    (layer) => layer.type === "pixel"
+    (layer) => layer.type === "pixel",
   );
   if (pixelLayers.length <= 1) {
     alert("Cannot delete the last pixel layer.");
@@ -1534,13 +1666,13 @@ function handleDeleteLayer(layerId, layerName) {
 
   // Find the layer to be deleted
   const layerToDelete = animationData[activeFrameIndex].layers.find(
-    (layer) => layer.id === layerId
+    (layer) => layer.id === layerId,
   );
   // Prevent deleting reference layers via this function (handled by handleDeleteReferenceLayer)
   if (!layerToDelete || layerToDelete.type === "reference") {
     console.warn(
       "Attempted to delete a non-pixel or non-existent layer via handleDeleteLayer:",
-      layerId
+      layerId,
     );
     return;
   }
@@ -1601,7 +1733,7 @@ function handleDeleteLayer(layerId, layerName) {
           ) {
             let searchIndex = Math.min(
               activeLayerIndex,
-              animationData[activeFrameIndex].layers.length - 1
+              animationData[activeFrameIndex].layers.length - 1,
             );
             while (
               searchIndex >= 0 &&
@@ -1622,14 +1754,14 @@ function handleDeleteLayer(layerId, layerName) {
 
       renderLayersPanel();
       render(); // Re-render canvas as content changed
-    }
+    },
   );
 }
 
 // Handle deleting the reference layer
 function handleDeleteReferenceLayer() {
   const referenceLayer = animationData[activeFrameIndex].layers.find(
-    (layer) => layer.type === "reference"
+    (layer) => layer.type === "reference",
   );
   if (!referenceLayer) {
     console.warn("Attempted to delete reference layer, but none exists.");
@@ -1642,7 +1774,7 @@ function handleDeleteReferenceLayer() {
       console.log("Deleting reference layer ID:", referenceLayer.id);
       animationData.forEach((frame) => {
         const indexToRemove = frame.layers.findIndex(
-          (l) => l.type === "reference"
+          (l) => l.type === "reference",
         );
         if (indexToRemove !== -1) {
           frame.layers.splice(indexToRemove, 1);
@@ -1651,14 +1783,14 @@ function handleDeleteReferenceLayer() {
 
       // After deleting the reference layer, set the active layer to the first pixel layer
       activeLayerIndex = animationData[activeFrameIndex].layers.findIndex(
-        (layer) => layer.type === "pixel"
+        (layer) => layer.type === "pixel",
       );
       if (activeLayerIndex === -1) activeLayerIndex = 0; // Should not happen if we always have at least one pixel layer
 
       renderLayersPanel();
       render(); // Re-render canvas to remove the reference image
       updateStatus(); // Update status as active layer might change
-    }
+    },
   );
 }
 
@@ -1669,7 +1801,7 @@ function toggleFrameOnionSkin(frameIndex) {
     frame.onionSkinEnabled = !frame.onionSkinEnabled;
     console.log(
       `Frame ${frameIndex + 1} onion skin toggled to:`,
-      frame.onionSkinEnabled
+      frame.onionSkinEnabled,
     );
     renderTimelinePanel(); // Update button appearance
     render(); // Update canvas view
@@ -1747,7 +1879,7 @@ function resizeGrid(newWidth, newHeight) {
   renderLayersPanel(); // Re-render layers panel just in case
   render();
   console.log(
-    `Canvas and all pixel layers resized to ${gridWidth}x${gridHeight}`
+    `Canvas and all pixel layers resized to ${gridWidth}x${gridHeight}`,
   );
 }
 
@@ -1824,7 +1956,7 @@ function handleAnimExportConfirm() {
     return;
   }
   console.log(
-    `Starting Animation Export: Format=${format}, Scale=${scaleFactor}, Delay=${delay}, Loop=${loop}, Grid=${includeGrid}`
+    `Starting Animation Export: Format=${format}, Scale=${scaleFactor}, Delay=${delay}, Loop=${loop}, Grid=${includeGrid}`,
   );
   animExportStatus.textContent = "Preparing frames...";
   animExportStartButton.disabled = true;
@@ -1924,7 +2056,7 @@ function renderFrameToCanvas(frameIndex, scaleFactor, includeGrid) {
                 x * scaleFactor,
                 y * scaleFactor,
                 scaleFactor,
-                scaleFactor
+                scaleFactor,
               );
             }
           }
@@ -1946,7 +2078,7 @@ function renderFrameToCanvas(frameIndex, scaleFactor, includeGrid) {
             offsetX,
             offsetY,
             scaledWidth,
-            scaledHeight
+            scaledHeight,
           );
           tempCtx.globalAlpha = 1; // Reset alpha
         } else if (layer.imageDataUrl) {
@@ -1978,7 +2110,7 @@ function renderFrameToCanvas(frameIndex, scaleFactor, includeGrid) {
       gridWidth,
       gridHeight,
       scaleFactor,
-      exportGridColor
+      exportGridColor,
     );
   }
 
@@ -2003,7 +2135,7 @@ function exportGIF(scaleFactor, delay, loop, includeGrid) {
             new Promise((resolve, reject) => {
               layer._image.onload = resolve;
               layer._image.onerror = reject;
-            })
+            }),
           );
         }
       }
@@ -2050,7 +2182,7 @@ function exportGIF(scaleFactor, delay, loop, includeGrid) {
 
       gif.on("progress", function (p) {
         animExportStatus.textContent = `Encoding GIF... (${Math.round(
-          p * 100
+          p * 100,
         )}%)`;
       });
 
@@ -2085,7 +2217,7 @@ function exportAPNG(scaleFactor, delay, loop, includeGrid) {
             new Promise((resolve, reject) => {
               layer._image.onload = resolve;
               layer._image.onerror = reject;
-            })
+            }),
           );
         }
       }
@@ -2109,7 +2241,7 @@ function exportAPNG(scaleFactor, delay, loop, includeGrid) {
             0,
             0,
             frameCanvas.width,
-            frameCanvas.height
+            frameCanvas.height,
           );
           frames.push(imageData.data.buffer);
           delays.push(delay);
@@ -2130,7 +2262,7 @@ function exportAPNG(scaleFactor, delay, loop, includeGrid) {
         gridHeight * scaleFactor,
         0,
         delays,
-        loop
+        loop,
       );
 
       animExportStatus.textContent = "APNG export finished!";
@@ -2156,14 +2288,14 @@ function exportPNG(scaleFactor = 1, includeGrid = false) {
   // For single frame export, we also need to ensure the reference image is loaded
   const activeFrame = animationData[activeFrameIndex];
   const refLayer = activeFrame.layers.find(
-    (layer) => layer.type === "reference"
+    (layer) => layer.type === "reference",
   );
 
   const proceedExport = () => {
     const frameCanvas = renderFrameToCanvas(
       activeFrameIndex,
       scaleFactor,
-      includeGrid
+      includeGrid,
     );
     if (!frameCanvas) {
       console.error("Failed to render active frame for export.");
@@ -2187,7 +2319,7 @@ function exportPNG(scaleFactor = 1, includeGrid = false) {
       refLayer._image.onerror = (e) => {
         console.error(
           "Error loading reference image for single frame export:",
-          e
+          e,
         );
         alert("Error loading reference image for export.");
       };
@@ -2294,7 +2426,7 @@ fileLoader.addEventListener("change", (event) => {
         (!loadedData.palette || Array.isArray(loadedData.palette))
       ) {
         console.log(
-          `Loading V5: ${loadedData.width}x${loadedData.height}, Frames: ${loadedData.animationData.length}`
+          `Loading V5: ${loadedData.width}x${loadedData.height}, Frames: ${loadedData.animationData.length}`,
         );
         gridWidth = loadedData.width;
         gridHeight = loadedData.height;
@@ -2333,11 +2465,11 @@ fileLoader.addEventListener("change", (event) => {
             const defaultPixelLayer = createLayerObject(
               "Layer 1",
               "pixel",
-              true
+              true,
             );
             frame.layers.push(defaultPixelLayer);
             console.warn(
-              `Frame ${frame.id} had no pixel layers after load, added a default.`
+              `Frame ${frame.id} had no pixel layers after load, added a default.`,
             );
           }
         });
@@ -2368,7 +2500,7 @@ fileLoader.addEventListener("change", (event) => {
         (!loadedData.palette || Array.isArray(loadedData.palette))
       ) {
         console.log(
-          `Loading V4: ${loadedData.width}x${loadedData.height}, Frames: ${loadedData.animationData.length}`
+          `Loading V4: ${loadedData.width}x${loadedData.height}, Frames: ${loadedData.animationData.length}`,
         );
         gridWidth = loadedData.width;
         gridHeight = loadedData.height;
@@ -2407,11 +2539,11 @@ fileLoader.addEventListener("change", (event) => {
             const defaultPixelLayer = createLayerObject(
               "Layer 1",
               "pixel",
-              true
+              true,
             );
             frame.layers.push(defaultPixelLayer);
             console.warn(
-              `Frame ${frame.id} had no pixel layers after load, added a default.`
+              `Frame ${frame.id} had no pixel layers after load, added a default.`,
             );
           }
         });
@@ -2442,7 +2574,7 @@ fileLoader.addEventListener("change", (event) => {
         (!loadedData.palette || Array.isArray(loadedData.palette))
       ) {
         console.log(
-          `Loading V3: ${loadedData.width}x${loadedData.height}, Frames: ${loadedData.animationData.length}`
+          `Loading V3: ${loadedData.width}x${loadedData.height}, Frames: ${loadedData.animationData.length}`,
         );
         gridWidth = loadedData.width;
         gridHeight = loadedData.height;
@@ -2465,11 +2597,11 @@ fileLoader.addEventListener("change", (event) => {
             const defaultPixelLayer = createLayerObject(
               "Layer 1",
               "pixel",
-              true
+              true,
             );
             frame.layers.push(defaultPixelLayer);
             console.warn(
-              `Frame ${frame.id} had no layers after V3 load, added a default pixel layer.`
+              `Frame ${frame.id} had no layers after V3 load, added a default pixel layer.`,
             );
           }
         });
@@ -2500,7 +2632,7 @@ fileLoader.addEventListener("change", (event) => {
         (!loadedData.palette || Array.isArray(loadedData.palette))
       ) {
         console.log(
-          `Loading V2: ${loadedData.width}x${loadedData.height}, Frames: ${loadedData.animationData.length}`
+          `Loading V2: ${loadedData.width}x${loadedData.height}, Frames: ${loadedData.animationData.length}`,
         );
         gridWidth = loadedData.width;
         gridHeight = loadedData.height;
@@ -2523,11 +2655,11 @@ fileLoader.addEventListener("change", (event) => {
             const defaultPixelLayer = createLayerObject(
               "Layer 1",
               "pixel",
-              true
+              true,
             );
             frame.layers.push(defaultPixelLayer);
             console.warn(
-              `Frame ${frame.id} had no layers after V2 load, added a default pixel layer.`
+              `Frame ${frame.id} had no layers after V2 load, added a default pixel layer.`,
             );
           }
         });
@@ -2577,10 +2709,10 @@ fileLoader.addEventListener("change", (event) => {
           } else {
             // If IDs are missing or invalid, re-assign IDs
             console.warn(
-              "Layer IDs missing or invalid in V1 load, re-assigning."
+              "Layer IDs missing or invalid in V1 load, re-assigning.",
             );
             animationData[0].layers.forEach(
-              (layer) => (layer.id = nextLayerId++)
+              (layer) => (layer.id = nextLayerId++),
             );
           }
         } else {
@@ -2588,7 +2720,7 @@ fileLoader.addEventListener("change", (event) => {
           const defaultPixelLayer = createLayerObject("Layer 1", "pixel", true);
           animationData[0].layers.push(defaultPixelLayer);
           console.warn(
-            "No layers found in V1 load, added a default pixel layer."
+            "No layers found in V1 load, added a default pixel layer.",
           );
         }
 
@@ -2610,7 +2742,7 @@ fileLoader.addEventListener("change", (event) => {
         if (!previouslyActiveLayer || previouslyActiveLayer.type !== "pixel") {
           // Find the first pixel layer
           let newActiveIndex = currentFrameLayers.findIndex(
-            (layer) => layer.type === "pixel"
+            (layer) => layer.type === "pixel",
           );
           if (newActiveIndex === -1) newActiveIndex = 0; // Should not happen if we add a default layer
           activeLayerIndex = newActiveIndex;
@@ -2654,7 +2786,7 @@ function addReferenceImageLoaderListener() {
     // Check if a reference layer already exists
     if (animationData[0].layers.some((layer) => layer.type === "reference")) {
       alert(
-        "A reference image layer already exists. Please delete it first to load a new one."
+        "A reference image layer already exists. Please delete it first to load a new one.",
       );
       event.target.value = null; // Reset file input
       return;
@@ -2796,11 +2928,11 @@ function handleGlobalMouseUp(e) {
     const mouseY = (e.clientY - rect.top) * scaleY;
     const gridX = Math.max(
       0,
-      Math.min(gridWidth - 1, Math.floor(mouseX / pixelSize))
+      Math.min(gridWidth - 1, Math.floor(mouseX / pixelSize)),
     );
     const gridY = Math.max(
       0,
-      Math.min(gridHeight - 1, Math.floor(mouseY / pixelSize))
+      Math.min(gridHeight - 1, Math.floor(mouseY / pixelSize)),
     );
     const finalClampedPos = { gridX, gridY };
     console.log("Global Mouse Up - Final Clamped Pos:", finalClampedPos);
@@ -2813,7 +2945,7 @@ function handleGlobalMouseUp(e) {
             startPos.gridX,
             startPos.gridY,
             finalClampedPos.gridX,
-            finalClampedPos.gridY
+            finalClampedPos.gridY,
           );
           break;
         case "drawingRectangle":
@@ -2821,7 +2953,7 @@ function handleGlobalMouseUp(e) {
             startPos.gridX,
             startPos.gridY,
             finalClampedPos.gridX,
-            finalClampedPos.gridY
+            finalClampedPos.gridY,
           );
           break;
         case "selecting":
@@ -3040,7 +3172,7 @@ function confirmPlacement() {
   const activeData = getActiveLayerData();
   if (!activeData || !selectionContentData) {
     console.warn(
-      "Cannot confirm placement on non-pixel layer or with no content."
+      "Cannot confirm placement on non-pixel layer or with no content.",
     );
     cancelPlacement();
     return;
@@ -3316,9 +3448,8 @@ function updateStatus() {
   const layerName = activeLayer ? activeLayer.name : "None";
   const layerType = activeLayer ? activeLayer.type : "";
 
-  statusDiv.querySelector(
-    "#status-line-1 span:first-of-type"
-  ).textContent = `Tool: ${toolText} | Color:`;
+  statusDiv.querySelector("#status-line-1 span:first-of-type").textContent =
+    `Tool: ${toolText} | Color:`;
   colorPreview.style.backgroundColor = drawColor;
 
   // If active layer is reference, show its scale

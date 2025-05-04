@@ -1,132 +1,158 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="manifest" href="./manifest.json" />
     <link rel="icon" type="image/png" href="media/icon.png" />
     <title>Pixel Animator</title>
-    <link rel="stylesheet" href="style.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body>
     <div id="appContainer">
-        <div id="editorAndLayersWrapper">
-            <div id="editor-container">
-                <canvas id="pixelCanvas"></canvas>
-                <div id="status">
-                    <div id="status-line-1">
-                        <span>Tool: Draw | Color:</span>
-                        <span id="color-preview"></span>
-                    </div>
-                    <div id="toolGrid">
-                        <button data-tool="draw" title="Draw (d)">D</button>
-                        <button data-tool="line" title="Line (t)">L</button>
-                        <button data-tool="rectangle" title="Rectangle (r)">R</button>
-                        <button data-tool="fill" title="Fill (f)">F</button>
-                        <button data-tool="erase" title="Erase (x)">X</button>
-                        <button data-tool="select" title="Select (s)">S</button>
-                        <button data-action="palette" title="Palette (c)">C</button>
-                        <button data-action="resize" title="Resize (1)">1</button>
-                        <button data-action="export" title="Export Frame/Animation (e)">E</button>
-                        <button data-action="exportGrid" title="Export Frame w/Grid (Shift+E)">E+</button>
-                        <button data-action="save" title="Save (o)">O</button>
-                        <button data-action="load" title="Load (l)">Ld</button>
-                    </div>
-                </div>
+      <div id="editorAndLayersWrapper">
+        <div id="editor-container">
+          <canvas id="pixelCanvas"></canvas>
+          <div id="status">
+            <div id="status-line-1">
+              <span>Tool: Draw | Color:</span>
+              <span id="color-preview"></span>
             </div>
-            <div id="layersPanel">
-                <div class="panel-header">
-                    <span>Layers</span>
-                    <button id="loadRefImageButton" title="Load Reference Image">🖼️</button>
-                </div>
-                <div id="layerList">
-                    </div>
-                <button id="addLayerButton" title="Add New Pixel Layer">+</button>
-                <input type="file" id="refImageLoader" accept="image/*" style="display: none;">
+            <div id="toolGrid">
+              <button data-tool="draw" title="Draw (d)">D</button>
+              <button data-tool="line" title="Line (t)">L</button>
+              <button data-tool="rectangle" title="Rectangle (r)">R</button>
+              <button data-tool="fill" title="Fill (f)">F</button>
+              <button data-tool="erase" title="Erase (x)">X</button>
+              <button data-tool="select" title="Select (s)">S</button>
+              <button data-action="palette" title="Palette (c)">C</button>
+              <button data-action="resize" title="Resize (1)">1</button>
+              <button data-action="export" title="Export Frame/Animation (e)">
+                E
+              </button>
+              <button
+                data-action="exportGrid"
+                title="Export Frame w/Grid (Shift+E)"
+              >
+                E+
+              </button>
+              <button data-action="save" title="Save (o)">O</button>
+              <button data-action="load" title="Load (l)">Ld</button>
             </div>
+          </div>
         </div>
+        <div id="layersPanel">
+          <div class="panel-header">
+            <span>Layers</span>
+            <button id="loadRefImageButton" title="Load Reference Image">
+              🖼️
+            </button>
+          </div>
+          <div id="layerList"></div>
+          <button id="addLayerButton" title="Add New Pixel Layer">+</button>
+          <input
+            type="file"
+            id="refImageLoader"
+            accept="image/*"
+            style="display: none"
+          />
+        </div>
+      </div>
 
-        <div id="timelinePanel">
-             <div class="panel-header">Timeline</div>
-             <div id="frameListContainer">
-                 <div id="frameList">
-                     </div>
-             </div>
-             <div class="timeline-controls">
-                 <button id="addFrameButton" title="Add Empty Frame">Add Frame</button>
-                 <button id="duplicateFrameButton" title="Duplicate Current Frame">Duplicate Frame</button>
-             </div>
+      <div id="timelinePanel">
+        <div class="panel-header">Timeline</div>
+        <div id="frameListContainer">
+          <div id="frameList"></div>
         </div>
+        <div class="timeline-controls">
+          <button id="addFrameButton" title="Add Empty Frame">Add Frame</button>
+          <button id="duplicateFrameButton" title="Duplicate Current Frame">
+            Duplicate Frame
+          </button>
+        </div>
+      </div>
     </div>
 
     <div id="colorPalette"></div>
-    <input type="color" id="nativeColorPicker">
-    <input type="file" id="fileLoader" accept=".json">
+    <input type="color" id="nativeColorPicker" />
+    <input type="file" id="fileLoader" accept=".json" />
 
     <div id="resizeModalBackdrop"></div>
     <div id="resizeModal">
-        <label for="resizeInput">Enter new dimensions (WidthxHeight):</label>
-        <input type="text" id="resizeInput" placeholder="e.g., 16x16">
-        <div class="modal-buttons">
-            <button id="resizeOkButton">OK</button>
-            <button id="resizeCancelButton">Cancel</button>
-        </div>
-        <div id="resizeError" class="error-message"></div>
+      <label for="resizeInput">Enter new dimensions (WidthxHeight):</label>
+      <input type="text" id="resizeInput" placeholder="e.g., 16x16" />
+      <div class="modal-buttons">
+        <button id="resizeOkButton">OK</button>
+        <button id="resizeCancelButton">Cancel</button>
+      </div>
+      <div id="resizeError" class="error-message"></div>
     </div>
 
     <div id="exportModalBackdrop"></div>
     <div id="exportModal">
-        <label for="exportInput">Enter scale factor (1-100):</label>
-        <input type="number" id="exportInput" min="1" max="100" value="10">
-        <div class="modal-buttons">
-            <button id="exportOkButton">Export PNG</button>
-            <button id="exportCancelButton">Cancel</button>
-        </div>
-        <div id="exportError" class="error-message"></div>
+      <label for="exportInput">Enter scale factor (1-100):</label>
+      <input type="number" id="exportInput" min="1" max="100" value="10" />
+      <div class="modal-buttons">
+        <button id="exportOkButton">Export PNG</button>
+        <button id="exportCancelButton">Cancel</button>
+      </div>
+      <div id="exportError" class="error-message"></div>
     </div>
 
     <div id="animExportModalBackdrop"></div>
     <div id="animExportModal">
-        <h3>Export Animation</h3>
-        <div class="modal-option">
-            <label for="animExportFormat">Format:</label>
-            <select id="animExportFormat">
-                <option value="apng" selected>APNG</option>
-                <option value="gif">GIF</option>
-            </select>
-        </div>
-        <div class="modal-option">
-            <label for="animExportScale">Scale Factor (1-100):</label>
-            <input type="number" id="animExportScale" min="1" max="100" value="10">
-        </div>
-        <div class="modal-option">
-            <label for="animExportDelay">Frame Delay (ms):</label>
-            <input type="number" id="animExportDelay" min="10" value="100">
-        </div>
-        <div class="modal-option">
-            <label for="animExportLoop">Loop (0=infinite):</label>
-            <input type="number" id="animExportLoop" min="0" value="0">
-        </div>
-        <div class="modal-option checkbox-option">
-            <input type="checkbox" id="animExportGrid">
-            <label for="animExportGrid">Include Grid</label>
-        </div>
-        <div class="modal-buttons">
-            <button id="animExportStartButton">Export</button>
-            <button id="animExportCancelButton">Cancel</button>
-        </div>
-        <div id="animExportStatus" class="status-message"></div>
-        <div id="animExportError" class="error-message"></div>
+      <h3>Export Animation</h3>
+      <div class="modal-option">
+        <label for="animExportFormat">Format:</label>
+        <select id="animExportFormat">
+          <option value="apng" selected>APNG</option>
+          <option value="gif">GIF</option>
+        </select>
+      </div>
+      <div class="modal-option">
+        <label for="animExportScale">Scale Factor (1-100):</label>
+        <input
+          type="number"
+          id="animExportScale"
+          min="1"
+          max="100"
+          value="10"
+        />
+      </div>
+      <div class="modal-option">
+        <label for="animExportDelay">Frame Delay (ms):</label>
+        <input type="number" id="animExportDelay" min="10" value="100" />
+      </div>
+      <div class="modal-option">
+        <label for="animExportLoop">Loop (0=infinite):</label>
+        <input type="number" id="animExportLoop" min="0" value="0" />
+      </div>
+      <div class="modal-option checkbox-option">
+        <input type="checkbox" id="animExportGrid" />
+        <label for="animExportGrid">Include Grid</label>
+      </div>
+      <div class="modal-buttons">
+        <button id="animExportStartButton">Export</button>
+        <button id="animExportCancelButton">Cancel</button>
+      </div>
+      <div id="animExportStatus" class="status-message"></div>
+      <div id="animExportError" class="error-message"></div>
     </div>
 
     <div id="confirmModalBackdrop"></div>
     <div id="confirmModal">
-        <p id="confirmMessage"></p>
-        <div class="modal-buttons">
-            <button id="confirmOkButton">OK</button>
-            <button id="confirmCancelButton">Cancel</button>
-        </div>
+      <p id="confirmMessage"></p>
+      <div class="modal-buttons">
+        <button id="confirmOkButton">OK</button>
+        <button id="confirmCancelButton">Cancel</button>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
@@ -134,5 +160,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 
     <script src="mos.js"></script>
-</body>
+  </body>
 </html>

@@ -1,0 +1,795 @@
+/* Solarized Dark Palette Variables (for reference) */
+/* :root {
+  --base03:  #001b26; /* Darkest Background */
+/* --base02:  #073642; /* Dark Background */
+/* --base01:  #586e75; /* Muted Text / Borders */
+/* --base00:  #657b83; /* Alt Muted Text */
+/* --base0:   #839496; /* Primary Text */
+/* --base1:   #93a1a2; /* Lighter Text / Hover */
+/* --base2:   #eee8d5; /* Light Background */
+/* --base3:   #fdf6e3; /* Lightest Background */
+/* --yellow:  #cc0;    /* #b58900 */
+/* --orange:  #c60;    /* #cb4b16 */
+/* --red:     #dc322f; */
+/* --magenta: #d33682; */
+/* --violet:  #6c71c4; */
+/* --blue:    #268bd2; */
+/* --cyan:    #2aa198; */
+/* --green:   #6c0;    /* #859900 */
+/* } */
+
+/* Basic Body Styles */
+body {
+    font-family: "Inter", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #001b26; /* Darkest Solarized */
+    color: #839496; /* Base0 Text */
+    margin: 0;
+    padding: 15px;
+    box-sizing: border-box;
+  }
+
+  /* App Container */
+  #appContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    width: fit-content;
+    max-width: 95%;
+    background-color: #002b36; /* Dark Solarized */
+    padding: 20px;
+    border-radius: 10px;
+    /* Subtle glow shadow using accent */
+    box-shadow: 0 0 10px rgba(203, 75, 22, 0.2); /* Orange glow */
+    border: 1px solid #073642; /* Slightly lighter border */
+  }
+
+  /* Editor/Layers Wrapper */
+  #editorAndLayersWrapper {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* Editor Container */
+  #editor-container {
+    background-color: #001b26; /* Darkest */
+    border: 1px solid #073642; /* Separator */
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2); /* Inner shadow */
+    text-align: center;
+    z-index: 1;
+    width: fit-content;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Status Area */
+  #status {
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: #839496; /* Base0 Text */
+    width: 100%;
+  }
+  #status-line-1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 5px; /* Reduced margin */
+  }
+
+  #color-preview {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #586e75; /* Base01 Border */
+    vertical-align: middle;
+    border-radius: 2px;
+  }
+
+  /* Tool Grid */
+  #toolGrid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 5px;
+    margin-top: 10px;
+    justify-content: center;
+    padding: 0 10px;
+    width: 100%;
+    max-width: 300px;
+    box-sizing: border-box;
+  }
+  #toolGrid button {
+    padding: 6px 8px;
+    font-size: 0.8em;
+    font-weight: bold;
+    border: 1px solid #586e75; /* Base01 Border */
+    border-radius: 4px;
+    background-color: #073642; /* Base02 Background */
+    color: #839496; /* Base0 Text */
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s ease, border-color 0.2s ease,
+      color 0.2s ease;
+    min-width: 40px;
+    box-shadow: none; /* Remove light theme shadow */
+  }
+  #toolGrid button:hover {
+    background-color: #002b36; /* Darker hover */
+    border-color: #93a1a2; /* Base1 Border */
+    color: #93a1a2; /* Base1 Text */
+  }
+  #toolGrid button:active {
+    background-color: #001b26; /* Darkest */
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  #toolGrid button.active {
+    background-color: #c60; /* Orange Accent */
+    color: #fdf6e3; /* Base3 Text (Lightest) */
+    border-color: #cb4b16; /* Darker Orange */
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Canvas */
+  canvas {
+    border: 1px solid #586e75; /* Base01 Border */
+    background-color: #073642; /* Base02 Background */
+    border-radius: 4px;
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+    cursor: default; /* Default cursor, will be changed by JS */
+  }
+
+  /* Timeline Panel */
+  #timelinePanel {
+    background-color: #001b26; /* Darkest */
+    border: 1px solid #073642; /* Separator */
+    padding: 10px 15px;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2); /* Inner shadow */
+    width: 100%;
+    max-width: 80vw;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  #timelinePanel .panel-header {
+    font-weight: bold;
+    text-align: center;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #073642; /* Base02 Separator */
+    color: #93a1a2; /* Base1 Text (lighter) */
+    font-size: 0.95em;
+    margin-bottom: 5px;
+  }
+
+  #frameListContainer {
+    overflow-x: auto;
+    padding-bottom: 10px;
+    /* Style scrollbar for dark theme (optional, webkit specific) */
+    scrollbar-width: thin;
+    scrollbar-color: #586e75 #002b36;
+  }
+  #frameListContainer::-webkit-scrollbar {
+      height: 8px;
+  }
+  #frameListContainer::-webkit-scrollbar-track {
+      background: #002b36;
+      border-radius: 4px;
+  }
+  #frameListContainer::-webkit-scrollbar-thumb {
+      background-color: #586e75;
+      border-radius: 4px;
+      border: 2px solid #002b36;
+  }
+
+
+  #frameList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 5px 0;
+    width: 100%;
+  }
+
+  .frame-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 6px;
+    min-width: auto;
+    position: relative;
+    border: 1px solid #586e75; /* Base01 Border */
+    border-radius: 4px;
+    background-color: #073642; /* Base02 Background */
+    cursor: pointer;
+    font-size: 0.85em;
+    color: #839496; /* Base0 Text */
+    white-space: nowrap;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    text-align: center;
+    box-sizing: border-box;
+    min-height: 28px;
+  }
+
+  .frame-item.active {
+    background-color: #268bd2; /* Blue Accent */
+    border-color: #1e6a9e; /* Darker Blue */
+    font-weight: bold;
+    color: #fdf6e3; /* Base3 Text (Lightest) */
+  }
+  .frame-item.active .onion-skin-toggle-btn { /* Ensure onion text is visible */
+      color: #fdf6e3;
+      opacity: 1;
+  }
+  .frame-item.active .delete-button { /* Ensure delete is visible */
+      color: #eee8d5; /* Base2 */
+  }
+  .frame-item.active .delete-button:hover {
+      color: #dc322f; /* Red */
+  }
+
+
+  .frame-item:hover:not(.active) {
+    background-color: #002b36; /* Darker hover */
+    border-color: #93a1a2; /* Base1 Border */
+    color: #93a1a2; /* Base1 Text */
+  }
+  /* Ensure hover styles apply to buttons inside too */
+  .frame-item:hover:not(.active) .onion-skin-toggle-btn,
+  .frame-item:hover:not(.active) .delete-button {
+      color: #93a1a2;
+  }
+  .frame-item:hover:not(.active) .delete-button:hover {
+      color: #dc322f; /* Red */
+  }
+
+
+  .frame-label {
+    flex-grow: 1;
+    text-align: center;
+    margin: 0 3px;
+    min-width: 20px;
+    color: inherit; /* Inherit color from .frame-item */
+  }
+
+  .frame-item .delete-button {
+    padding: 1px 4px;
+    font-size: 1em;
+    line-height: 1;
+    margin-left: auto;
+    margin-inline: 4px 0;
+    background: none;
+    border: none;
+    color: #586e75; /* Muted Base01 */
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .frame-item .delete-button:hover {
+    color: #dc322f; /* Red */
+    background: none;
+  }
+
+  .timeline-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #073642; /* Base02 Separator */
+  }
+  .timeline-controls button {
+    padding: 5px 12px;
+    font-size: 0.85em;
+    border: 1px solid #586e75; /* Base01 Border */
+    border-radius: 4px;
+    background-color: #073642; /* Base02 */
+    color: #839496; /* Base0 */
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  .timeline-controls button:hover {
+    background-color: #002b36; /* Darker */
+    border-color: #93a1a2; /* Base1 */
+    color: #93a1a2; /* Base1 */
+  }
+
+  /* Layers Panel */
+  #layersPanel {
+    background-color: #001b26; /* Darkest */
+    border: 1px solid #073642; /* Separator */
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2); /* Inner shadow */
+    width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-self: stretch;
+    max-height: 70vh;
+    overflow-y: auto;
+    /* Style scrollbar for dark theme (optional, webkit specific) */
+    scrollbar-width: thin;
+    scrollbar-color: #586e75 #001b26;
+  }
+  #layersPanel::-webkit-scrollbar {
+      width: 8px;
+  }
+  #layersPanel::-webkit-scrollbar-track {
+      background: #001b26; /* Match panel bg */
+      border-radius: 4px;
+  }
+  #layersPanel::-webkit-scrollbar-thumb {
+      background-color: #586e75;
+      border-radius: 4px;
+      border: 2px solid #001b26; /* Match panel bg */
+  }
+
+
+  #layersPanel .panel-header {
+      display: flex; /* Enable flex for alignment */
+      justify-content: space-between; /* Space out title and button */
+      align-items: center;
+      font-weight: bold;
+      text-align: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #073642; /* Base02 Separator */
+      color: #93a1a2; /* Base1 Text */
+  }
+
+  #loadRefImageButton {
+      background: none;
+      border: 1px solid transparent;
+      color: #839496; /* Base0 Text */
+      font-size: 1.1em; /* Adjust size as needed */
+      padding: 0 4px;
+      cursor: pointer;
+      border-radius: 3px;
+      line-height: 1;
+      transition: color 0.2s ease, background-color 0.2s ease;
+  }
+  #loadRefImageButton:hover {
+      color: #93a1a2; /* Base1 */
+      background-color: #073642; /* Base02 */
+  }
+
+  #layerList {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-grow: 1;
+    min-height: 50px;
+  }
+
+  .layer-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 6px;
+    border: 1px solid #586e75; /* Base01 */
+    border-radius: 4px;
+    background-color: #073642; /* Base02 */
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    font-size: 0.9em;
+    user-select: none;
+    position: relative;
+    color: #839496; /* Base0 Text */
+  }
+
+  .layer-item.active {
+    background-color: #268bd2; /* Blue Accent */
+    border-color: #1e6a9e; /* Darker Blue */
+    font-weight: bold;
+    color: #fdf6e3; /* Lightest Text */
+  }
+  .layer-item.active .visibility-toggle { /* Ensure visibility icon is visible */
+      color: #eee8d5; /* Base2 */
+  }
+  .layer-item.active .delete-button { /* Ensure delete is visible */
+      color: #eee8d5; /* Base2 */
+  }
+  .layer-item.active .delete-button:hover {
+      color: #dc322f; /* Red */
+  }
+
+  .layer-item:hover:not(.active) {
+    background-color: #002b36; /* Darker */
+    border-color: #93a1a2; /* Base1 */
+    color: #93a1a2; /* Base1 */
+  }
+  /* Ensure hover styles apply to buttons inside too */
+  .layer-item:hover:not(.active) .visibility-toggle,
+  .layer-item:hover:not(.active) .delete-button {
+      color: #93a1a2;
+  }
+  .layer-item:hover:not(.active) .delete-button:hover {
+    color: #dc322f; /* Red */
+    background: none; /* Ensure background doesn't change */
+  }
+   /* Ensure delete button in active state doesn't change background on hover */
+   .layer-item.active .delete-button:hover {
+       background: none;
+   }
+
+
+  .layer-item span { /* Layer name */
+    flex-grow: 1;
+    margin-right: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: inherit; /* Inherit color */
+  }
+
+  .layer-item .visibility-toggle {
+    cursor: pointer;
+    color: #839496; /* Base0 */
+    font-size: 1em;
+    width: 20px;
+    text-align: center;
+    margin-right: 5px;
+    transition: color 0.2s ease;
+  }
+  .layer-item .visibility-toggle.visible { color: #93a1a2; /* Base1 (more visible) */ }
+  .layer-item .visibility-toggle.hidden { color: #586e75; /* Base01 (less visible) */ opacity: 0.7; }
+
+
+  .layer-item .delete-button {
+    padding: 1px 4px;
+    font-size: 1em;
+    line-height: 1;
+    margin-inline: 4px 0;
+    background: none;
+    border: none;
+    color: #586e75; /* Muted Base01 */
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .layer-item .delete-button:hover {
+    color: #dc322f; /* Red */
+    background: none;
+  }
+
+
+  /* Style for the reference layer item */
+  .layer-item.reference-layer {
+      background-color: #073642; /* Base02 */
+      border-style: dashed;
+      border-color: #586e75; /* Base01;
+      font-style: italic;
+      color: #657b83; /* Base00 */
+      /* cursor: default; /* Cursor handled by JS now */
+  }
+
+  .layer-item.reference-layer.active {
+      background-color: #586e75; /* Base01 when active */
+      border-color: #93a1a2; /* Base1 */
+      color: #fdf6e3; /* Lightest */
+      font-style: italic;
+      font-weight: bold;
+  }
+  /* Hide delete button for ref layer (visibility toggle is kept) */
+  .layer-item.reference-layer .delete-button {
+      display: none;
+  }
+
+  .layer-item.dragging {
+    opacity: 0.6;
+    background-color: #586e75;
+    border-color: #93a1a2;
+    border-style: dashed;
+    color: #001b26;
+  }
+  .layer-item.drag-over::before,
+  .frame-item.drag-over::before {
+    content: "";
+    position: absolute;
+    top: -3px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: #c60; /* Orange accent for drop target */
+    border-radius: 2px;
+    z-index: 1;
+  }
+
+  #addLayerButton {
+    padding: 8px;
+    margin-top: 10px;
+    border: 1px dashed #586e75; /* Base01 dashed */
+    border-radius: 4px;
+    background-color: transparent; /* No bg */
+    color: #586e75; /* Base01 Text */
+    cursor: pointer;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  #addLayerButton:hover {
+    background-color: rgba(133, 153, 0, 0.1); /* Green transparent */
+    border-color: #6c0; /* Green Accent */
+    color: #6c0; /* Green Accent */
+  }
+
+  /* Palette Styling */
+  #colorPalette {
+    position: absolute;
+    display: none;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 2px;
+    padding: 5px;
+    background-color: #001b26; /* Darkest */
+    border: 1px solid #586e75; /* Base01 */
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); /* Darker shadow */
+    z-index: 100;
+    width: calc(8 * 20px + 2 * 7px + 2 * 5px);
+  }
+  .color-swatch {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #073642; /* Base02 */
+    cursor: pointer;
+    border-radius: 2px;
+    box-sizing: border-box;
+    transition: border-color 0.1s ease-in-out, transform 0.1s ease-in-out;
+    /* Checkerboard for null/transparent */
+    /*background-image: linear-gradient(45deg, #586e75 25%, transparent 25%, transparent 75%, #586e75 75%), linear-gradient(45deg, #586e75 25%, transparent 25%, transparent 75%, #586e75 75%);*/
+    background-size: 10px 10px;
+    background-position: 0 0, 5px 5px;
+  }
+  .color-swatch:hover {
+    border-color: #93a1a2; /* Base1 */
+    transform: scale(1.1);
+  }
+
+  /* Hidden elements */
+  #nativeColorPicker,
+  #fileLoader,
+  #refImageLoader { /* Added refImageLoader */
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    top: -100px;
+    left: -100px;
+    border: none;
+    padding: 0;
+  }
+
+  /* --- Generic Modal Backdrop Style --- */
+  #resizeModalBackdrop,
+  #exportModalBackdrop,
+  #animExportModalBackdrop,
+  #confirmModalBackdrop { /* Added confirm backdrop */
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 27, 38, 0.7); /* Dark semi-transparent */
+    z-index: 199; /* Keep backdrop below modal */
+  }
+
+  /* --- Generic Modal Container Style --- */
+  #resizeModal,
+  #exportModal,
+  #animExportModal,
+  #confirmModal { /* Added confirm modal */
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #002b36; /* Dark Solarized */
+    color: #839496; /* Base0 text */
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); /* Stronger shadow */
+    z-index: 200; /* Ensure modal is above backdrop */
+    min-width: 300px;
+    border: 1px solid #586e75; /* Base01 border */
+    text-align: left;
+  }
+
+  /* --- Generic Modal Content Styles --- */
+  #resizeModal label,
+  #exportModal label,
+  #animExportModal label,
+  #confirmModal p { /* Style confirm message paragraph */
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #93a1a2; /* Base1 (lighter text) */
+    font-size: 0.95em;
+  }
+  #confirmModal p {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-weight: normal; /* Normal weight for message */
+    text-align: center; /* Center confirm message */
+  }
+
+  #resizeModal input[type="text"],
+  #exportModal input[type="number"],
+  #animExportModal input[type="number"],
+  #animExportModal select {
+    display: block;
+    width: calc(100% - 22px);
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    border: 1px solid #586e75; /* Base01 */
+    background-color: #001b26; /* Darkest */
+    color: #93a1a2; /* Base1 Text */
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+  #resizeModal input[type="text"]:focus,
+  #exportModal input[type="number"]:focus,
+  #animExportModal input[type="number"]:focus,
+  #animExportModal select:focus {
+      outline: none;
+      border-color: #268bd2; /* Blue */
+      box-shadow: 0 0 5px rgba(38, 139, 210, 0.5);
+  }
+
+  #animExportModal .modal-option {
+    margin-bottom: 12px;
+  }
+
+  #animExportModal .checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #animExportModal .checkbox-option input[type="checkbox"] {
+    width: auto;
+    margin-bottom: 0;
+    accent-color: #6c0; /* Green */
+  }
+  #animExportModal .checkbox-option label {
+    margin-bottom: 0;
+    font-weight: normal;
+    color: #839496; /* Base0 */
+  }
+
+  #resizeModal .modal-buttons,
+  #exportModal .modal-buttons,
+  #animExportModal .modal-buttons,
+  #confirmModal .modal-buttons { /* Style confirm buttons container */
+    text-align: right;
+    margin-top: 20px;
+  }
+  #confirmModal .modal-buttons {
+    text-align: center; /* Center confirm buttons */
+  }
+
+  /* Default button styles within modals */
+  #resizeModal button,
+  #exportModal button,
+  #animExportModal button,
+  #confirmModal button {
+    padding: 8px 15px;
+    margin-left: 10px;
+    border: 1px solid #586e75; /* Base01 */
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    background-color: #073642; /* Base02 */
+    color: #839496; /* Base0 */
+  }
+  #resizeModal button:hover,
+  #exportModal button:hover,
+  #animExportModal button:hover,
+  #confirmModal button:hover {
+    border-color: #93a1a2; /* Base1 */
+    color: #93a1a2; /* Base1 */
+    background-color: #002b36; /* Darker */
+  }
+  #confirmModal button { /* Adjust confirm button margin */
+       margin: 0 5px;
+  }
+
+
+  /* Specific Modal Button Colors */
+  #resizeModal #resizeOkButton,
+  #exportModal #exportOkButton,
+  #animExportModal #animExportStartButton {
+    background-color: #6c0; /* Green */
+    border-color: #567f00; /* Darker Green */
+    color: #fdf6e3; /* Lightest */
+  }
+  #resizeModal #resizeOkButton:hover,
+  #exportModal #exportOkButton:hover,
+  #animExportModal #animExportStartButton:hover {
+    background-color: #7a9900; /* Brighter Green */
+    border-color: #6c0;
+    color: #fff;
+  }
+
+  #resizeModal #resizeCancelButton,
+  #exportModal #exportCancelButton,
+  #animExportModal #animExportCancelButton,
+  #confirmModal #confirmCancelButton { /* Style confirm cancel */
+    background-color: #586e75; /* Base01 */
+    border-color: #657b83; /* Base00 */
+    color: #fdf6e3; /* Lightest */
+  }
+  #resizeModal #resizeCancelButton:hover,
+  #exportModal #exportCancelButton:hover,
+  #animExportModal #animExportCancelButton:hover,
+  #confirmModal #confirmCancelButton:hover {
+    background-color: #657b83; /* Base00 */
+    border-color: #839496; /* Base0 */
+    color: #fff;
+  }
+
+  /* Confirm OK Button (Destructive) */
+  #confirmModal #confirmOkButton {
+    background-color: #dc322f; /* Red */
+    border-color: #b02825; /* Darker Red */
+    color: #fdf6e3; /* Lightest */
+  }
+  #confirmModal #confirmOkButton:hover {
+    background-color: #e74c3c; /* Brighter Red */
+    border-color: #dc322f;
+    color: #fff;
+  }
+
+
+  /* Error/Status Message Style */
+  #resizeModal .error-message,
+  #exportModal .error-message,
+  #animExportModal .error-message {
+    color: #dc322f; /* Red */
+    font-size: 0.85em;
+    margin-top: 10px;
+    min-height: 1.2em;
+  }
+  #animExportModal .status-message {
+    color: #2aa198; /* Cyan */
+    font-size: 0.85em;
+    margin-top: 10px;
+    min-height: 1.2em;
+  }
+
+  #animExportModal h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #93a1a2; /* Base1 Text */
+    border-bottom: 1px solid #073642; /* Separator */
+    padding-bottom: 10px;
+  }
+
+  /* --- Confirmation Modal Specific Styles (Positioning already handled) --- */
+  /* #confirmModalBackdrop, #confirmModal already styled with generics */
+
+
+  /* Drag/Drop Placeholders */
+  /* .frame-item.drag-over::before, .layer-item.drag-over::before already styled */
+  /* .frame-item.dragging, .layer-item.dragging already styled */
+

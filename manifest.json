@@ -1,0 +1,22 @@
+{
+  "short_name": "Mos",
+  "version": "0.0.1",
+  "name": "Mos",
+  "description": "A web based, local-only pixel art editor",
+  "icons": [
+    {
+      "src": "media/icon512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "media/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#002b36",
+  "theme_color": "#c60"
+}

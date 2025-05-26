@@ -59,7 +59,7 @@ const exportGridColor = "#cccccc";
 let drawColor = "#000000";
 const eraseColor = null;
 const longPressDuration = 500;
-const selectionOutlineColor = "rgba(0, 150, 255, 0.7)";
+const selectionOutlineColor = "rgba(45, 255, 13, 0.7)";
 const selectionDash = [4, 2];
 const MAX_EXPORT_SCALE = 100;
 const DEFAULT_EXPORT_SCALE = 10;
@@ -765,7 +765,7 @@ function drawGrid() {
 }
 function drawSelectionOutline(x, y, w, h, dashed = true) {
   ctx.strokeStyle = selectionOutlineColor;
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 2;
   if (dashed) {
     ctx.setLineDash(selectionDash);
   } else {

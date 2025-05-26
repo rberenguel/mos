@@ -21,8 +21,6 @@
 /* Basic Body Styles */
 body {
   font-family: "Inter", sans-serif;
-  display: flex;
-  justify-content: center;
   align-items: center;
   min-height: 100vh;
   background-color: #001b26; /* Darkest Solarized */
@@ -34,14 +32,16 @@ body {
 
 /* App Container */
 #appContainer {
+  margin-left: auto;
+  margin-right: auto;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 0px;
   align-items: center;
   width: fit-content;
   max-width: 95%;
   background-color: #002b36; /* Dark Solarized */
-  padding: 20px;
+  padding: 0px;
   border-radius: 10px;
   /* Subtle glow shadow using accent */
   box-shadow: 0 0 10px rgba(203, 75, 22, 0.2); /* Orange glow */
@@ -50,11 +50,12 @@ body {
 
 /* Editor/Layers Wrapper */
 #editorAndLayersWrapper {
-  display: flex;
+  /*display: flex;*/
   gap: 20px;
   align-items: flex-start;
   width: 100%;
-  justify-content: center;
+  /*justify-content: center;*/
+  text-align: center;
   flex-wrap: wrap;
 }
 
@@ -62,7 +63,7 @@ body {
 #editor-container {
   background-color: #001b26; /* Darkest */
   border: 1px solid #073642; /* Separator */
-  padding: 1.5rem;
+  padding: 0.5rem;
   border-radius: 0.5rem;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2); /* Inner shadow */
   text-align: center;
@@ -326,6 +327,7 @@ canvas {
 
 /* Layers Panel */
 #layersPanel {
+  margin: auto;
   background-color: #001b26; /* Darkest */
   border: 1px solid #073642; /* Separator */
   padding: 15px;
